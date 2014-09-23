@@ -153,32 +153,21 @@ Plugin.prototype.init = function() {
 
     var select2options = $.extend({}, {
         query: function(query) {
-            var deferred;
-            if ($.isArray(requestParams)) {
-                var defferedArray = $.map(requestParams, function (params) {
-                    return GooglePlacesAPI.getPredictions(query.term, params);
+            GooglePlacesAPI.getPredictions(query.term, requestParams)
+                .done(function(aprs) {
+                    var results = $.map(aprs, function(apr) {
+                        // Select2 needs a "text" and "id" property set
+                        // for each autocomplete list item. "id" is
+                        // already defined on the apr object
+                        apr["text"] = apr["description"];
+                        return apr;
+                    });
+                    query.callback({results: results});
+                })
+                .fail(function(errorMsg) {
+                    $el.trigger(pluginName + ":error", errorMsg);
+                    query.callback({results: []});
                 });
-                deferred = $.when.apply($, defferedArray);
-            }
-            else {
-                deferred = GooglePlacesAPI.getPredictions(query.term, requestParams);
-            }
-
-            deferred.done(function() {
-                var aprs = $.map(arguments, function (apr) {return apr;});  // flatten
-                var results = $.map(aprs, function(apr) {
-                    // Select2 needs a "text" and "id" property set
-                    // for each autocomplete list item. "id" is
-                    // already defined on the apr object
-                    apr["text"] = apr["description"];
-                    return apr;
-                });
-                query.callback({results: results});
-            })
-            .fail(function(errorMsg) {
-                $el.trigger(pluginName + ":error", errorMsg);
-                query.callback({results: []});
-            });
         },
         initSelection: function(element, callback) {
             // initSelection() was triggered by value being defined directly
