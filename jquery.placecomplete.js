@@ -133,6 +133,7 @@ var GooglePlacesAPI = {
 
 var Plugin = function(element, options) {
     this.element = element;
+    this.api = GooglePlacesAPI;
 
     // Initialize
     GooglePlacesAPI.init(element);
